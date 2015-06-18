@@ -455,6 +455,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
   currentText: 'Today',
   clearText: 'Clear',
   closeText: 'Done',
+  nullDateText: '',
   closeOnDateSelection: true,
   appendToBody: false,
   showButtonBar: true
@@ -470,6 +471,7 @@ function ($compile, $parse, $document, $position, dateFilter, dateParser, datepi
       currentText: '@',
       clearText: '@',
       closeText: '@',
+      nullDateText: '@', 
       dateDisabled: '&',
       customClass: '&'
     },
@@ -633,12 +635,16 @@ function ($compile, $parse, $document, $position, dateFilter, dateParser, datepi
         });
       }
 
+      var getNullDateText = function () {
+          return scope.nullDateText || datepickerPopupConfig.nullDateText;
+      };
+
       // Inner change
       scope.dateSelection = function(dt) {
         if (angular.isDefined(dt)) {
           scope.date = dt;
         }
-        var date = scope.date ? dateFilter(scope.date, dateFormat) : '';
+        var date = scope.date ? dateFilter(scope.date, dateFormat) : getNullDateText();
         element.val(date);
         ngModel.$setViewValue(date);
 
@@ -650,7 +656,10 @@ function ($compile, $parse, $document, $position, dateFilter, dateParser, datepi
 
       // Detect changes in the view from the text box
       ngModel.$viewChangeListeners.push(function () {
-        scope.date = dateParser.parse(ngModel.$viewValue, dateFormat, scope.date) || new Date(ngModel.$viewValue);
+          if (ngModel.$viewValue == getNullDateText())
+              scope.date = null;
+          else
+              scope.date = dateParser.parse(ngModel.$viewValue, dateFormat, scope.date) || new Date(ngModel.$viewValue);
       });
 
       var documentClickBind = function(event) {
